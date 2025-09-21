@@ -2,23 +2,23 @@ package com.example.ProductCatalogService.Services;
 
 
 
-import com.example.ProductCatalogService.DTOs.RequestDTO.FakeStoreRequestProductDTO;
-import com.example.ProductCatalogService.DTOs.ResponseDTO.FakeStoreResponseProductDTO;
-import com.example.ProductCatalogService.Models.Product;
+import com.example.ProductCatalogService.DTOs.RequestDTO.ProductRequestDTO;
+import com.example.ProductCatalogService.DTOs.ResponseDTO.ProductResponseDTO;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductService {
-    Product getProductById(long id);
+    ResponseEntity<Optional<ProductResponseDTO>> getProductById(long id);
 
-    List<FakeStoreResponseProductDTO> getAllProducts();
+    List<ProductResponseDTO> getAllProducts();
 
-    FakeStoreResponseProductDTO createProduct(FakeStoreRequestProductDTO fakeStoreRequestProductDTO);
+    ProductResponseDTO createProduct(ProductRequestDTO fakeStoreRequestProductDTO);
 
     ResponseEntity<?> deleteProduct(long id);
 
-    ResponseEntity<FakeStoreResponseProductDTO> updateProduct(long id, FakeStoreRequestProductDTO fakeStoreRequestProductDTO);
+    ResponseEntity<ProductResponseDTO> updateProduct(long id, ProductRequestDTO fakeStoreRequestProductDTO);
 
 
 }

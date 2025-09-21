@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class FakeStoreRequestProductDTO {
+public class ProductRequestDTO {
         private long id;
         private String title;
         private double price;

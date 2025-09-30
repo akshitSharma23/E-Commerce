@@ -1,13 +1,12 @@
-package com.example.userauthservice.Models;
+package com.example.ProductCatalogService.Models;
 
 
 import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity@Getter@Setter
+@Getter@Setter
 public class Role extends BaseModel{
-
     private String role;
 
 }

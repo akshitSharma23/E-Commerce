@@ -1,10 +1,18 @@
 package com.example.ProductCatalogService.Controllers;
 
+import com.example.ProductCatalogService.AuthenticationClient.AuthClient;
 import com.example.ProductCatalogService.DTOs.RequestDTO.ProductRequestDTO;
 import com.example.ProductCatalogService.DTOs.ResponseDTO.ProductResponseDTO;
+import com.example.ProductCatalogService.DTOs.ResponseDTO.ValidateResponseDTO;
 import com.example.ProductCatalogService.Exceptions.ProductNotFound;
+import com.example.ProductCatalogService.Models.Role;
+import com.example.ProductCatalogService.Models.SessionStatus;
 import com.example.ProductCatalogService.Services.ProductService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +26,28 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private AuthClient authClient;
+
     @GetMapping()
-    public List<ProductResponseDTO> getAllProducts(){
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts(@RequestHeader("AUTH_TOKEN")@Nullable String token,
+                                                                   @RequestHeader("userId")@Nullable long id) throws JsonProcessingException {
+        if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
+        if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        List<Role> roles=response.getBody().getUserResponse().getRoles();
+        boolean isAdmin=false;
+        for(Role i:roles){
+            if(i.getRole().equals("ADMIN")){
+                isAdmin=true;
+                break;
+            }
+        }
+        if(!isAdmin)
+            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+
+        return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")

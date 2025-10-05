@@ -24,7 +24,8 @@ public class User extends BaseModel {
     @Column(name="full_name")
     private String fullName;
 
-    @ManyToMany(fetch= FetchType.LAZY)
+    @ManyToMany(fetch= FetchType.EAGER)
+//    @ManyToMany()
     private List<Role> roles=new ArrayList<>();
 
     public static User getInstance(UserRequest userRequest){

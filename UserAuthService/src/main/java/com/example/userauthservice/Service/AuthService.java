@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
@@ -37,7 +38,7 @@ public class AuthService {
     private SessionRepository sessionRepository;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserRepository userRepository;
@@ -60,7 +61,7 @@ public class AuthService {
         User user=User.builder()
                 .fullName(name)
                 .email(email)
-                .password(bCryptPasswordEncoder.encode(password))
+                .password(passwordEncoder.encode(password))
                 .roles(list)
                 .build();
         try{
@@ -78,7 +79,7 @@ public class AuthService {
         if(userOptional.isEmpty())
             throw new UserNotFoundException("No User exist with with email");
         User user=userOptional.get();
-        if(!bCryptPasswordEncoder.matches(password,user.getPassword()))
+        if(!passwordEncoder.matches(password,user.getPassword()))
             throw new PasswordMissMatch("incorrect password");
 
         LocalDateTime date=LocalDateTime.now().plusDays(5);

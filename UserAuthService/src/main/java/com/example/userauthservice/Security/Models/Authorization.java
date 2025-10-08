@@ -2,6 +2,7 @@ package com.example.userauthservice.Security.Models;
 
 import java.time.Instant;
 
+import com.example.userauthservice.Models.SessionStatus;
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +23,7 @@ public class Authorization {
     @Lob
     @Column(length = 500)
     private String state;
+    private SessionStatus sessionStatus;
     @Lob
     @Column(length = 4000)
     private String authorizationCodeValue;
@@ -98,6 +100,14 @@ public class Authorization {
 
     public String getPrincipalName() {
         return principalName;
+    }
+
+    public SessionStatus getSessionStatus() {
+        return sessionStatus;
+    }
+
+    public void setSessionStatus(SessionStatus sessionStatus) {
+        this.sessionStatus = sessionStatus;
     }
 
     public void setPrincipalName(String principalName) {

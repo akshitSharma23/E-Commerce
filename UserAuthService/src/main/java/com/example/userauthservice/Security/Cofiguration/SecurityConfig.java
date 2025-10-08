@@ -25,6 +25,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -88,6 +89,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
                 throws Exception {
             http
                     .authorizeHttpRequests((authorize) -> authorize
+                            .requestMatchers("public/signup").permitAll()
                             .anyRequest().authenticated()
                     )
                     // Form login handles the redirect to the login page from the
@@ -177,6 +179,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
                                 .map(c -> c.replaceFirst("^ROLE_", ""))
                                 .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
                         claims.put("roles", roles);
+//                        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
                         Authentication authentication=context.getPrincipal();
                         Long id=((UserDetailIMPL)authentication.getPrincipal()).getUserId();
                         claims.put("UserID",id);

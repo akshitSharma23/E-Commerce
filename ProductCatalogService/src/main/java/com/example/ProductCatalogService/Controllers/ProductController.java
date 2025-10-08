@@ -30,9 +30,10 @@ public class ProductController {
     private AuthClient authClient;
 
     @GetMapping()
-    public ResponseEntity<List<ProductResponseDTO>> getAllProducts(@RequestHeader("AUTH_TOKEN")@Nullable String token,
+    public ResponseEntity<List<ProductResponseDTO>> getAllProducts(@RequestHeader("Authorization")@Nullable String token,
                                                                    @RequestHeader("userId")@Nullable long id) throws JsonProcessingException {
         if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        token=token.split(" ")[1];
         ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
         if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -51,7 +52,8 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> getProduct(@PathVariable long id) throws  ProductNotFound{
+    public ResponseEntity<ProductResponseDTO> getProduct(@PathVariable long id,@RequestHeader("Authorization") String auth) throws  ProductNotFound{
+        System.out.println(auth.split(" ")[1]);
         ResponseEntity<Optional<ProductResponseDTO>> optionalResponseEntity=productService.getProductById(id);
         if(optionalResponseEntity.getBody().isEmpty())
             throw new ProductNotFound("product is not available");

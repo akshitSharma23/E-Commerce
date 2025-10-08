@@ -33,22 +33,7 @@ public class PublicAuthController {
         return authService.login(userRequest.getEmail(),userRequest.getPassword());
     }
 
-    @GetMapping("validate/{id}")
-    public ResponseEntity<ValidateResponseDTO> validate(@RequestHeader("AuthToken") String token,@PathVariable long id){
-        System.out.println();
-        Optional<ValidateResponseDTO> optional=authService.validate(token,id);
-        if(optional.isEmpty())
-            return new ResponseEntity<>(null,HttpStatus.NOT_ACCEPTABLE);
-        return new ResponseEntity<>(optional.get(),HttpStatus.ACCEPTED);
-    }
 
-    
-    @PostMapping("Logoff")
-    public ResponseEntity<?> logOff(@RequestBody LogOffRequestDTO logOffRequestDTO){
-//        System.out.println();
-        boolean flag=authService.logOff(logOffRequestDTO.getToken(),logOffRequestDTO.getUserid());
-        return flag?new ResponseEntity<>(HttpStatus.OK):new ResponseEntity<>(HttpStatus.CONFLICT);
-    }
 
     @GetMapping("healthCheck")
     public String healthCheck(){

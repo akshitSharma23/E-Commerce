@@ -30,6 +30,7 @@ public class Authorization {
     private Instant authorizationCodeIssuedAt;
     private Instant authorizationCodeExpiresAt;
     private String authorizationCodeMetadata;
+    private boolean isDeleted;
     @Lob
     @Column(length = 4000)
     private String accessTokenValue;
@@ -160,6 +161,14 @@ public class Authorization {
 
     public void setAuthorizationCodeIssuedAt(Instant authorizationCodeIssuedAt) {
         this.authorizationCodeIssuedAt = authorizationCodeIssuedAt;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 
     public Instant getAuthorizationCodeExpiresAt() {

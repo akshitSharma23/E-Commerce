@@ -1,11 +1,13 @@
 package com.example.userauthservice.Security.Service;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.example.userauthservice.Models.SessionStatus;
 import com.example.userauthservice.Security.Models.Authorization;
 import com.example.userauthservice.Security.Repositories.AuthorizationRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -180,7 +182,9 @@ public class JpaOAuth2AuthorizationService implements OAuth2AuthorizationService
         entity.setAuthorizedScopes(StringUtils.collectionToDelimitedString(authorization.getAuthorizedScopes(), ","));
         entity.setAttributes(writeMap(authorization.getAttributes()));
         entity.setState(authorization.getAttribute(OAuth2ParameterNames.STATE));
-
+        entity.setSessionStatus(SessionStatus.ACTIVE);
+        entity.setAuthorizationCodeIssuedAt(Instant.now());
+        entity.setAuthorizationCodeExpiresAt(Instant.now().plus(5, ChronoUnit.DAYS));
         OAuth2Authorization.Token<OAuth2AuthorizationCode> authorizationCode =
                 authorization.getToken(OAuth2AuthorizationCode.class);
         setTokenValues(

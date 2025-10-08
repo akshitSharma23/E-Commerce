@@ -69,6 +69,7 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
                     )
                     .authorizeHttpRequests((authorize) ->
                             authorize
+//                                    .requestMatchers("public/signup").permitAll()
                                     .anyRequest().authenticated()
                     )
                     // Redirect to the login page when not authenticated from the
@@ -89,13 +90,19 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
                 throws Exception {
             http
                     .authorizeHttpRequests((authorize) -> authorize
-                            .requestMatchers("public/signup").permitAll()
+                            .requestMatchers("/public/**").permitAll()
+                            .requestMatchers("/auth/**").permitAll()
+//                            .requestMatchers("/auth/logoff/**").permitAll()
                             .anyRequest().authenticated()
                     )
+                    .csrf(csrf -> csrf.ignoringRequestMatchers(
+                            "/public/**",
+//                            "/auth/validate/**",
+                            "/auth/**"))
+                    // allow POST /public/signup
                     // Form login handles the redirect to the login page from the
                     // authorization server filter chain
                     .formLogin(Customizer.withDefaults());
-
             return http.build();
         }
 
@@ -154,10 +161,10 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
             return keyPair;
         }
 
-        @Bean
-        public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
-            return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
-        }
+//        @Bean
+//        public JwtDecoder jwtDecoder(JWKSource<SecurityContext> jwkSource) {
+//            return OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+//        }
 
         @Bean
         public AuthorizationServerSettings authorizationServerSettings() {
@@ -167,6 +174,14 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
         @Bean
         public PasswordEncoder passwordEncoder(){
             return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public JwtDecoder resourceJwtDecoder(JWKSource<SecurityContext> jwkSource) {
+            var decoder = OAuth2AuthorizationServerConfiguration.jwtDecoder(jwkSource);
+            var withIssuer = org.springframework.security.oauth2.jwt.JwtValidators.createDefaultWithIssuer("http://localhost:9000");
+            ((org.springframework.security.oauth2.jwt.NimbusJwtDecoder) decoder).setJwtValidator(withIssuer);
+            return decoder;
         }
 
         @Bean

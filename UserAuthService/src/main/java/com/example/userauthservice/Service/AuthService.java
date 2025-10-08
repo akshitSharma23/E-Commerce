@@ -1,5 +1,6 @@
 package com.example.userauthservice.Service;
 
+import com.example.userauthservice.DTOs.OAuthValidateResponse;
 import com.example.userauthservice.DTOs.UserResponse;
 import com.example.userauthservice.DTOs.ValidateResponseDTO;
 import com.example.userauthservice.Exception.PasswordMissMatch;
@@ -12,24 +13,36 @@ import com.example.userauthservice.Models.User;
 import com.example.userauthservice.Repositories.RoleRepository;
 import com.example.userauthservice.Repositories.SessionRepository;
 import com.example.userauthservice.Repositories.UserRepository;
+import com.example.userauthservice.Security.Models.Authorization;
+import com.example.userauthservice.Security.Models.UserDetailIMPL;
+import com.example.userauthservice.Security.Repositories.AuthorizationRepository;
 import io.jsonwebtoken.Jwts;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.codec.ResourceDecoder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.apache.coyote.http11.Constants.a;
 
 @Service
 public class AuthService {
@@ -46,7 +59,15 @@ public class AuthService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private AuthorizationRepository authorizationRepository;
+
     private final SecretKey key = Jwts.SIG.HS256.key().build();
+    @Autowired
+    private JwtDecoder jwtDecoder;
+
+    @Autowired
+    private JwtDecoder resourceJwtDecoder;
 
 
     public ResponseEntity<?> signup(String name, String email, String password){
@@ -128,8 +149,28 @@ public class AuthService {
         sessionRepository.save(session);
         return true;
     }
+    public boolean logOffOAuth(String token,long id) throws Exception{
+        token=token.split(" ")[1];
+        Optional<Authorization> optionalAuthorization=authorizationRepository.findByAccessTokenValue(token);
+        if(optionalAuthorization.isEmpty())return false;
+        try{
+//            Jwt jwt=jwtDecoder.decode(token);
+            Jwt jwt =resourceJwtDecoder.decode(token);
+            Long userId = jwt.getClaim("UserID");
+            if(userId!=id)return false;
+        }catch(Exception e){
+            throw new Exception(e);
+        }
+        Authorization authorization=optionalAuthorization.get();
+        authorization.setSessionStatus(SessionStatus.LOGGED_OUT);
+        authorization.setAuthorizationCodeExpiresAt(Instant.now());
+        authorization.setDeleted(true);
+        authorizationRepository.save(authorization);
+        return true;
+    }
 
     public Optional<ValidateResponseDTO> validate(String token, long id){
+        token=token.split(" ")[1];
         Optional<Session> optional=sessionRepository.findByToken(token);
         if(optional.isEmpty())return Optional.empty();
         Session session=optional.get();
@@ -142,4 +183,24 @@ public class AuthService {
         return Optional.of(ValidateResponseDTO.getInstance(session));
     }
 
+
+
+    public Optional<OAuthValidateResponse> validateOAuth(String token, long id) throws Exception {
+        token=token.split(" ")[1];
+        Optional<Authorization> optionalAuthorization=authorizationRepository.findByAccessTokenValue(token);
+        if(optionalAuthorization.isEmpty())return Optional.empty();
+        try{
+//            Jwt jwt= jwtDecoder.decode(token);
+            Jwt jwt =resourceJwtDecoder.decode(token);
+            Long userId = jwt.getClaim("UserID");
+            if(userId!=id)return Optional.empty();
+        } catch (JwtException e) {
+            throw new Exception(e);
+        }
+        Authorization authorization=optionalAuthorization.get();
+        if(authorization.isDeleted())return Optional.empty();
+        if(authorization.getSessionStatus()!=SessionStatus.ACTIVE)return Optional.empty();
+        if(authorization.getAuthorizationCodeExpiresAt().isBefore(Instant.now()))return Optional.empty();
+        return Optional.of(OAuthValidateResponse.getInstance(authorization));
+    }
 }

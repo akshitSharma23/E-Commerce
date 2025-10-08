@@ -33,8 +33,6 @@ public class PublicAuthController {
         return authService.login(userRequest.getEmail(),userRequest.getPassword());
     }
 
-
-
     @GetMapping("healthCheck")
     public String healthCheck(){
         return "ok";

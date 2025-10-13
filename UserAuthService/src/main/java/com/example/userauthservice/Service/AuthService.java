@@ -1,7 +1,7 @@
 package com.example.userauthservice.Service;
 
 import com.example.userauthservice.DTOs.OAuthValidateResponse;
-import com.example.userauthservice.DTOs.UserResponse;
+import com.example.userauthservice.DTOs.UserResponseDTO;
 import com.example.userauthservice.DTOs.ValidateResponseDTO;
 import com.example.userauthservice.Exception.PasswordMissMatch;
 import com.example.userauthservice.Exception.UserAlreadyExist;
@@ -14,35 +14,23 @@ import com.example.userauthservice.Repositories.RoleRepository;
 import com.example.userauthservice.Repositories.SessionRepository;
 import com.example.userauthservice.Repositories.UserRepository;
 import com.example.userauthservice.Security.Models.Authorization;
-import com.example.userauthservice.Security.Models.UserDetailIMPL;
 import com.example.userauthservice.Security.Repositories.AuthorizationRepository;
 import io.jsonwebtoken.Jwts;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.codec.ResourceDecoder;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.MultiValueMapAdapter;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.apache.coyote.http11.Constants.a;
 
 @Service
 public class AuthService {
@@ -88,7 +76,7 @@ public class AuthService {
         try{
             roleRepository.save(role);
             User user1=userRepository.save(user);
-            return new ResponseEntity<>(UserResponse.getInstance(user1),HttpStatus.OK);
+            return new ResponseEntity<>(UserResponseDTO.getInstance(user1),HttpStatus.OK);
         }
         catch(Exception e){
             return new ResponseEntity<>(e,HttpStatus.NOT_IMPLEMENTED);
@@ -130,7 +118,7 @@ public class AuthService {
         headers.put("auth_Token",List.of(token));
 //        HttpHeaders headers = new HttpHeaders();
 //        headers.add("Auth-Token", token);
-        UserResponse userResponse=UserResponse.getInstance(user);
+        UserResponseDTO userResponse= UserResponseDTO.getInstance(user);
         return new ResponseEntity<>(
                 userResponse,
                 headers,
@@ -189,10 +177,12 @@ public class AuthService {
         token=token.split(" ")[1];
         Optional<Authorization> optionalAuthorization=authorizationRepository.findByAccessTokenValue(token);
         if(optionalAuthorization.isEmpty())return Optional.empty();
+        List<String> roles;
         try{
 //            Jwt jwt= jwtDecoder.decode(token);
             Jwt jwt =resourceJwtDecoder.decode(token);
             Long userId = jwt.getClaim("UserID");
+            roles=jwt.getClaim("roles");
             if(userId!=id)return Optional.empty();
         } catch (JwtException e) {
             throw new Exception(e);
@@ -201,6 +191,7 @@ public class AuthService {
         if(authorization.isDeleted())return Optional.empty();
         if(authorization.getSessionStatus()!=SessionStatus.ACTIVE)return Optional.empty();
         if(authorization.getAuthorizationCodeExpiresAt().isBefore(Instant.now()))return Optional.empty();
-        return Optional.of(OAuthValidateResponse.getInstance(authorization));
+//        Optional<User> user=userRepository.findById(id);
+        return Optional.of(OAuthValidateResponse.getInstance(authorization,roles));
     }
 }

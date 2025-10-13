@@ -11,15 +11,15 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserResponse {
+public class UserResponseDTO {
     private long id;
     private String fullName;
     private String email;
     private List<Role> roles;
 
 
-    public static UserResponse getInstance(User user){
-        return UserResponse.builder()
+    public static UserResponseDTO getInstance(User user){
+        return UserResponseDTO.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())

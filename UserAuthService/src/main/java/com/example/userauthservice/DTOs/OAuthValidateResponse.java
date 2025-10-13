@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter@Setter
 @Builder
@@ -14,11 +15,13 @@ public class OAuthValidateResponse {
     private boolean isDeleted;
     private SessionStatus sessionStatus;
     private Instant AuthorizationCodeExpiresAt;
+    private List<String> roles;
 
-    public static OAuthValidateResponse getInstance(Authorization authorization){
+    public static OAuthValidateResponse getInstance(Authorization authorization, List<String> roles){
         return OAuthValidateResponse.builder()
                 .AuthorizationCodeExpiresAt(authorization.getAuthorizationCodeExpiresAt())
                 .isDeleted(authorization.isDeleted())
-                .sessionStatus(authorization.getSessionStatus()).build();
+                .sessionStatus(authorization.getSessionStatus())
+                .roles(roles).build();
     }
 }

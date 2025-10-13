@@ -3,6 +3,7 @@ package com.example.ProductCatalogService.Services;
 import com.example.ProductCatalogService.DTOs.RequestDTO.ProductRequestDTO;
 import com.example.ProductCatalogService.DTOs.ResponseDTO.ProductResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 
 @Service
+//@Primary
 public class FakeStoreProductServiceIMPL implements ProductService{
 
     @Autowired

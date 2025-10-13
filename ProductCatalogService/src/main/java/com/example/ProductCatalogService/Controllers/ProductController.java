@@ -33,14 +33,14 @@ public class ProductController {
     public ResponseEntity<List<ProductResponseDTO>> getAllProducts(@RequestHeader("Authorization")@Nullable String token,
                                                                    @RequestHeader("userId")@Nullable long id) throws JsonProcessingException {
         if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        token=token.split(" ")[1];
+//        token=token.split(" ")[1];
         ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
         if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        List<Role> roles=response.getBody().getUserResponse().getRoles();
+        List<String> roles=response.getBody().getRoles();
         boolean isAdmin=false;
-        for(Role i:roles){
-            if(i.getRole().equals("ADMIN")){
+        for(String i:roles){
+            if(i.equals("ADMIN")){
                 isAdmin=true;
                 break;
             }
@@ -51,31 +51,86 @@ public class ProductController {
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> getProduct(@PathVariable long id,@RequestHeader("Authorization") String auth) throws  ProductNotFound{
-        System.out.println(auth.split(" ")[1]);
-        ResponseEntity<Optional<ProductResponseDTO>> optionalResponseEntity=productService.getProductById(id);
+    @GetMapping("/{pId}")
+    public ResponseEntity<ProductResponseDTO> getProduct(@RequestHeader("userId")@Nullable long id,@PathVariable long pId,@RequestHeader("Authorization") String token) throws ProductNotFound, JsonProcessingException {
+        if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        token=token.split(" ")[1];
+        ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
+        if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+//        System.out.println(auth.split(" ")[1]);
+        ResponseEntity<Optional<ProductResponseDTO>> optionalResponseEntity=productService.getProductById(pId);
         if(optionalResponseEntity.getBody().isEmpty())
             throw new ProductNotFound("product is not available");
         else{
-            ResponseEntity<ProductResponseDTO>  response=new ResponseEntity<>(optionalResponseEntity.getBody().get(),optionalResponseEntity.getStatusCode());
-            return response;
+            ResponseEntity<ProductResponseDTO>  response1=new ResponseEntity<>(optionalResponseEntity.getBody().get(),optionalResponseEntity.getStatusCode());
+            return response1;
         }
     }
 
     @PostMapping()
-    public ProductResponseDTO addNewProduct(@RequestBody ProductRequestDTO fakeStoreRequestProductDTO){
-        return productService.createProduct(fakeStoreRequestProductDTO);
+    public ResponseEntity<ProductResponseDTO> addNewProduct(@RequestHeader("Authorization")@Nullable String token,@RequestHeader("userId")@Nullable long id,@RequestBody ProductRequestDTO fakeStoreRequestProductDTO) throws JsonProcessingException {
+        if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        token=token.split(" ")[1];
+        ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
+        if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        List<String> roles=response.getBody().getRoles();
+        boolean isAdmin=false;
+        for(String i:roles){
+            if(i.equals("ADMIN")){
+                isAdmin=true;
+                break;
+            }
+        }
+        if(!isAdmin)
+            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+
+        return new ResponseEntity<>(productService.createProduct(fakeStoreRequestProductDTO),HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable long id, @RequestBody ProductRequestDTO fakeStoreRequestProductDTO){
-        return productService.updateProduct(id,fakeStoreRequestProductDTO);
+    @PutMapping("/{pId}")
+    public ResponseEntity<?> updateProduct(@RequestHeader("Authorization")@Nullable String token,
+                                           @RequestHeader("userId")@Nullable long id,@PathVariable long pId, @RequestBody ProductRequestDTO fakeStoreRequestProductDTO) throws JsonProcessingException {
+        if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        token=token.split(" ")[1];
+        ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
+        if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        List<String> roles=response.getBody().getRoles();
+        boolean isAdmin=false;
+        for(String i:roles){
+            if(i.equals("ADMIN")){
+                isAdmin=true;
+                break;
+            }
+        }
+        if(!isAdmin)
+            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+
+        return productService.updateProduct(pId,fakeStoreRequestProductDTO);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable long id){
-        return productService.deleteProduct(id);
+    @DeleteMapping("/{pId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable long pId,@RequestHeader("Authorization")@Nullable String token,
+                                           @RequestHeader("userId")@Nullable long id) throws JsonProcessingException {
+        if(token==null)return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        token=token.split(" ")[1];
+        ResponseEntity<ValidateResponseDTO> response=authClient.validate(token,id);
+        if(!response.getStatusCode().equals(HttpStatus.ACCEPTED))
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        List<String> roles=response.getBody().getRoles();
+        boolean isAdmin=false;
+        for(String i:roles){
+            if(i.equals("ADMIN")){
+                isAdmin=true;
+                break;
+            }
+        }
+        if(!isAdmin)
+            return new ResponseEntity<>(null,HttpStatus.UNAUTHORIZED);
+
+        return productService.deleteProduct(pId);
     }
 
     // exception advice class is better option

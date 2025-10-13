@@ -15,15 +15,14 @@ public class AuthClient {
     @Autowired
     private RestTemplate restTemplate;
 
-    private final String ApiEndPoint="http://localhost:9000/public/validate/";
+    private final String ApiEndPoint="http://localhost:9000/auth/validate/";
 
     public ResponseEntity<ValidateResponseDTO> validate(String token,long userId) throws JsonProcessingException {
         HttpHeaders httpHeaders=new HttpHeaders();
 //        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        httpHeaders.add("AuthToken",token);
+        httpHeaders.add("Authorization",token);
         HttpEntity<String> requestEntity= new HttpEntity<String>(httpHeaders);
         ResponseEntity<ValidateResponseDTO> response=restTemplate.exchange(ApiEndPoint+userId, HttpMethod.GET,requestEntity,ValidateResponseDTO.class);
-
         return response;
     }
 

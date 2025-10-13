@@ -7,6 +7,7 @@ import com.example.ProductCatalogService.Repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,9 +23,15 @@ public class ProductManagementService implements ProductService{
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private RedisTemplate<Long,Object> redisTemplate;
+
     @Override
     public ResponseEntity<Optional<ProductResponseDTO>> getProductById(long id) {
+        ProductResponseDTO productResponseDTO= (ProductResponseDTO) redisTemplate.opsForHash().get(id,"PRODUCTS");
+        if (productResponseDTO!=null)return new ResponseEntity<>(Optional.of(productResponseDTO),HttpStatus.OK);
         Optional<Product> optional=productRepository.findProductByid(id);
+        if(!optional.isEmpty())redisTemplate.opsForHash().put(optional.get().getId(),"PRODUCTS",ProductResponseDTO.getInstance(optional.get()));
         return optional.isEmpty()?new ResponseEntity<>(HttpStatus.NOT_FOUND):new ResponseEntity<>(Optional.of(ProductResponseDTO.getInstance(optional.get())),HttpStatus.OK);
     }
 
